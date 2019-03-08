@@ -2,9 +2,10 @@
 dependencies: []
 
 galaxy_info:
+  role_name: db_backup
   author: danylevskyi
   description: Database backup tool.
-  license: "license (BSD, MIT)"
+  license: MIT
   min_ansible_version: 2.4
   platforms:
     - name: Ubuntu
