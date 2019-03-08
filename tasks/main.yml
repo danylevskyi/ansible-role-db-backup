@@ -1,0 +1,35 @@
+---
+- name: Configure variables.
+  set_fact:
+    tmp_dump_name: dump
+    tmp_remote_path: /tmp
+
+- include_tasks: dump.yml
+  vars:
+    directory: hourly
+    interval: 3h
+    purge: 1d
+
+- include_tasks: dump.yml
+  vars:
+    directory: daily
+    interval: 1d
+    purge: 1w
+
+- include_tasks: dump.yml
+  vars:
+    directory: weekly
+    interval: 1w
+    purge: 4w
+
+- include_tasks: dump.yml
+  vars:
+    directory: monthly
+    interval: 4w
+    purge: 48w
+
+- include_tasks: dump.yml
+  vars:
+    directory: yearly
+    interval: 48w
+    purge: 480w

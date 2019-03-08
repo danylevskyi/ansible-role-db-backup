@@ -1,0 +1,67 @@
+---
+- name: Configure variables.
+  set_fact:
+    tmp_dump_name: dump
+    tmp_remote_path: /tmp
+    tmp_remote_dump_path: "{{ tmp_remote_path }}/{{ tmp_dump_name }}.sql"
+    tmp_remote_dump_path_gzipped: "{{ tmp_remote_path }}/{{ tmp_dump_name }}.sql.gz"
+    local_dump_directory: "{{ local_path }}/{{ directory }}"
+    local_dump_path_gzipped: "{{ local_path }}/{{ directory }}/{{ ansible_date_time.iso8601 }}.sql.gz"
+
+- name: Check if remote path exists.
+  file:
+    path: "{{ tmp_remote_path }}"
+    state: directory
+
+- name: Check if local path exists.
+  local_action:
+    module: file
+    path: "{{ local_path }}"
+    state: directory
+
+- name: Find dumps with age less than provided interval.
+  local_action:
+    module: find
+    paths: "{{ local_dump_directory }}"
+    age: "-{{ interval }}"
+  register: dumps
+
+- name: Dump database.
+  mysql_db:
+    state: dump
+    name: "{{ database }}"
+    target: "{{ tmp_remote_dump_path }}"
+  when: dumps.matched == 0
+
+- name: Compress database.
+  archive:
+    path: "{{ tmp_remote_dump_path }}"
+    dest: "{{ tmp_remote_dump_path_gzipped }}"
+    format: gz
+  when: dumps.matched == 0
+
+- name: Fetch database dump archive localy.
+  fetch:
+    src: "{{ tmp_remote_dump_path_gzipped }}"
+    dest: "{{ local_dump_path_gzipped }}"
+    flat: yes
+  when: dumps.matched == 0
+
+- name: Find local outdated dumps.
+  local_action:
+    module: find
+    paths: "{{ local_dump_directory }}"
+    age: "{{ purge }}"
+  register: outdated
+
+- name: Remove local outdated dumps.
+  local_action:
+    module: file
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ outdated.files }}"
+
+- name: Remove remote temporary dump.
+  file:
+    path: "{{ tmp_remote_dump_path_gzipped }}"
+    state: absent

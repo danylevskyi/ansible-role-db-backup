@@ -1,0 +1,21 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: danylevskyi
+  description: Database backup tool.
+  license: "license (BSD, MIT)"
+  min_ansible_version: 2.4
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+  galaxy_tags:
+    - backup
+    - database
+    - mysql
+    - db
+    - sql
